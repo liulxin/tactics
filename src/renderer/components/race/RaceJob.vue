@@ -1,17 +1,17 @@
 <template>
 	<div class="">
 		<ul class="job_ul">
-			<li v-for="(item, i) in jobli" :key="i" :class="{ active: cur === i }" @click="changeCur(i)">
+			<li v-for="(item, i) in curNmae" :key="i" :class="{ active: cur === i }" @click="changeCur(i)">
 				{{ item }}
 			</li>
 		</ul>
 		<div class="intro">
 			<p class="tip">职业介绍：</p>
-			<p class="int">{{ curJob.introduce }}</p>
+			<p class="int">{{ curData.introduce }}</p>
 		</div>
 		<div class="intro">
 			<p class="tip">英雄数量：</p>
-			<p class="int" v-for="level in curJob.level" :key="level.name">{{ level.name }}:{{ level.describe }}</p>
+			<p class="int" v-for="level in curData.level" :key="level.name">{{ level.name }}:{{ level.describe }}</p>
 		</div>
 		<div class="intro heros">
 			<p class="tip">相关英雄：</p>
@@ -21,8 +21,8 @@
 			<div class="heroInfo">
 				<div class="name">{{ curHeroList[curHero].hero_name }}</div>
 				<div class="tips">
-					<span>职业：{{ job[curHeroList[curHero].job - 1] }}</span>
-					<span>种族：{{ race[curHeroList[curHero].race - 1] }}</span>
+					<span>职业：{{ jobName[curHeroList[curHero].job - 1] }} {{ jobName[curHeroList[curHero].otherjob - 1] }}</span>
+					<span>种族：{{ raceName[curHeroList[curHero].race - 1] }} {{ raceName[curHeroList[curHero].otherrace - 1] }}</span>
 					<span>价格：{{ curHeroList[curHero].price }}</span>
 				</div>
 				<div class="des">{{ curHeroList[curHero].skill_name }}：{{ curHeroList[curHero].skill_introduce }}</div>
@@ -32,25 +32,56 @@
 </template>
 
 <script>
-import { job, race } from '../../util/racejob.js'
+import { tftjob_list, tftrace_list, tftheroesdata_list } from '../../save.js'
+import mapList from '../../util/mapList.js'
 export default {
 	data() {
 		return {
-			job,
-			race
+			raceName: [],
+			jobName: [],
+			cur: 0,
+			curHero: 0
 		}
 	},
 	props: {
-		curJob: Object,
-		curHeroList: Array,
-		cur: Number,
-		curHero: Number,
-		jobli: Array
+		isRace: Boolean,
+		data: Object
 	},
 	methods: {
 		changeCur(i) {
-			this.$emit('change-cur', i)
+			this.cur = i
+			this.curHero = 0
 		}
+	},
+	computed: {
+		curNmae() {
+			return this.isRace ? this.raceName : this.jobName
+		},
+		dataList() {
+			let list = this.isRace ? mapList(tftrace_list) : mapList(tftjob_list)
+			return list
+		},
+		curData() {
+			return this.dataList[this.cur]
+		},
+		curHeroList() {
+			let id = this.cur + 1
+			let heroList = tftheroesdata_list
+			let arr = []
+			for (let i in heroList) {
+				if (this.isRace && (heroList[i].race === id || heroList[i].otherrace === id)) {
+					arr.push(heroList[i])
+				}
+				if (!this.isRace && (heroList[i].job === id || heroList[i].otherjob === id)) {
+					arr.push(heroList[i])
+				}
+			}
+			return arr.map(hero => Object.assign({}, hero, { src: `static/hero/${hero.heroId}.png` }))
+		}
+	},
+	created() {
+		this.raceName = mapList(tftrace_list).map(item => item.race_name)
+		this.jobName = mapList(tftjob_list).map(item => item.job_name)
 	}
 }
 </script>

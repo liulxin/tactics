@@ -5,7 +5,9 @@
 			<router-link :to="{ name: 'occupation' }">职业</router-link>
 			<router-link :to="{ name: 'race' }">种族</router-link>
 		</div>
-		<router-view></router-view>
+		<keep-alive>
+			<router-view></router-view>
+		</keep-alive>
 	</div>
 </template>
 
